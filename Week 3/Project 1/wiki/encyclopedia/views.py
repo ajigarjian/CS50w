@@ -129,3 +129,48 @@ def create(request):
             "form": NewEntryForm(),
             "random_entry": random_entry
         })
+
+def search(request):
+
+     # initializing titles of markdown documents and a variable storing a random one for the random search on the home page
+    entries = util.list_entries()
+    random_entry = entries[randint(0, len(entries)-1)]
+
+    # if the user accesses the search view via POST, then they did so by submitting a search in the search bar. Retrieve search input and validate accordingly
+    if request.method == "POST":
+
+        # retrieve search info and set up empty list of substring matches
+        search = request.POST.get('q')
+        related_entries = []
+        
+        # for all the existing markdown docs, if the search matches any of them 1:1, end function and return that entry's page with it's title and content
+        for entry in entries:
+            if search.upper() == entry.upper():
+                return render(request, "encyclopedia/page.html", {
+                    "content": markdown2.markdown(util.get_entry(entry)),
+                    "page": entry,
+                    "random_entry": random_entry,
+                })
+
+            # otherwise, if the search and current entry don't match, check if the search is a substring of the entry, if it is, add it to the list
+            else:
+                if search.upper() in entry.upper():
+                    related_entries.append(entry)
+        
+        # if none of the entries are matches, return the search html page with the list of entries as links
+        return render(request, "encyclopedia/search.html", {
+            "related_entries": related_entries,
+            "random_entry": random_entry
+        })
+    
+
+    # if view not accessed via POST, then redirect to home page (search should only be accessed via POST after search bar submission)
+    else:
+
+        return render(request, "encyclopedia/index.html", {
+        "entries": entries,
+        "random_entry": random_entry
+    })
+
+
+        

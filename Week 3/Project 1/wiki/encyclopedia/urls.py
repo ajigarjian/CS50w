@@ -13,8 +13,9 @@ urlpatterns = [
     #  dynamic path to edit any entry at /edit/entry
     path("edit/<str:page>", views.edit, name="edit"),
 
-    # page for creating a new page
-    path("create", views.create, name="create")
+    # path for creating a new page
+    path("create", views.create, name="create"),
 
-    # path("search", views.search, name="page")
+    # path for acting on a search
+    path("search", views.search, name="search")
 ]

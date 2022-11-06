@@ -1,1 +1,0 @@
-One of the most popular thingamajings of all time!
