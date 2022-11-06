@@ -8,7 +8,7 @@
 
     <h1>Create New Page</h1>
 
-    <form action="{% url 'create' page %}" method="post">
+    <form action="{% url 'create' %}" method="post">
         {% csrf_token %}
         {{ form }}
         <input type="submit" value="Save">

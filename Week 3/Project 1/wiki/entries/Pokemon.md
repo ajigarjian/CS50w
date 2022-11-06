@@ -1,1 +1,1 @@
-One of the most popular thingies of all time!
+One of the most popular thingamajings of all time!
