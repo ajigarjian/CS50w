@@ -9,7 +9,7 @@ from . import util
 # Creating Django Form object for Create New Page - has a title entry input and markdown textarea. Still have to wrap it in html form tag and add submit button in html
 class NewEntryForm(forms.Form):
     title = forms.CharField(label="New Entry Title")
-    markdown = forms.CharField(widget=forms.Textarea())
+    markdown1 = forms.CharField(widget=forms.Textarea())
 
 # Creating Django Form object for Edit Existing Page - has a markdown textarea. Still have to wrap it in html form tag and add submit button in html
 class EditEntryForm(forms.Form):
