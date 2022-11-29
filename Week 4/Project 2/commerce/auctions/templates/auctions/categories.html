@@ -1,0 +1,49 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <ul>
+    {% for category in categories|slice:"1:" %}
+
+        <li>
+
+            <a href="{% url 'category' category=category.1 %}">{{category.1}}</a>
+        </li>
+
+    {% endfor %}
+
+    </ul>
+
+    {% if category != None %}
+
+        <h2>Active {{category}} Listings</h2>
+        <table class="table">
+            <tr>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Current Price</th>
+                <th>Owner</th>
+                <th>Image (Optional)</th>
+                <th>Category (Optional)</th>
+            </tr>
+
+            {% for listing in listings %}
+            <tr>
+                <td>
+                    <a href="{% url 'listing' listing.id %}">{{ listing.title }}</a>
+                </td>
+                <td>{{ listing.description }}</td>
+                <td>{{ listing.price }}</td>
+                <td>{{ listing.owner }}</td>
+                <td>
+                    <img src="{{ listing.image }}" height="60px">
+                </td>
+                <td>{{ listing.category }}</td>
+            </tr>
+            {% endfor %}
+
+        </table>
+    
+    {% endif %}
+
+{% endblock %}

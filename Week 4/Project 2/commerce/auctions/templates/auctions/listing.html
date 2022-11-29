@@ -1,0 +1,129 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+
+    <h2>
+        {% if listing.active == True %}
+            Active Listing: {{listing.title}}
+
+        {% else %}
+            Closed Listing: {{listing.title}} 
+
+            {% if user == listing_bids.0.user %}
+                | Congratulations, you've won the auction!
+            {% endif %}
+        
+        {% endif %}
+
+    </h2>
+
+    <table class="table">
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>{% if listing.active == True %} Current {% else %} Winning {% endif %} Price</th>
+            <th>Owner</th>
+            <th>Image (Optional)</th>
+            <th>Category (Optional)</th>
+        </tr>
+
+        <tr>
+            <td>{{ listing.title }}</td>
+            <td>{{ listing.description }}</td>
+            <td>{{ listing.price }}</td>
+            <td>{{ listing.owner }}</td>
+            <td>
+                <img src="{{ listing.image }}" height="60px">
+            </td>
+            <td>{{ listing.category }}</td>
+        </tr>
+    </table>
+
+    <br>
+
+    <div>
+        {% if user.is_authenticated %}
+
+            {% if listing.active == True %}
+
+                {% if listing.owner != user %} 
+
+                    <form action="{% url 'listing' id %}" method="POST">
+                        {% csrf_token %}
+                        <label for="description"> Bid: </label>
+                        {{ form.bid }}
+                        <input type="submit" value="Submit Bid" name="bidSubmit">
+                    </form>
+                
+                {% else %}
+
+                    <div class="wrapper">
+                        <form action="{% url 'listing' id %}" method="POST" name="closeAuctionForm">
+                            {% csrf_token %}
+                            <input type="submit" value="Close Auction" name="closeSubmit">
+                        </form>
+                    </div>
+                    <br>
+                    
+                {% endif %}
+            
+            {% endif %}
+        
+            <div class="wrapper">
+                <form action="{% url 'listing' id %}" method="POST" name="commentForm">
+                    {% csrf_token %}
+                    <div class="fieldWrapper">
+                        <label for="title">Add Comment: </label>
+                        {{ comment_form.comment }}
+                        <input type="submit" value="Submit Comment" name="commentSubmit">
+                    </div>
+                </form>
+            </div>
+            
+        {% endif %}
+
+    </div>
+
+    <br>
+
+    <div id="container">
+        <div class="column">
+            <h2>Bid History</h2>
+            <table class="table">
+                <tr>
+                    <th>User</th>
+                    <th>Bid Amount</th>
+                </tr>
+                
+                {% for bid in listing_bids %}
+
+                <tr>
+                    <td> {{ bid.user }}</td>
+                    <td> {{ bid.bid }} </td>
+                </tr>
+
+                {% endfor %}
+            </table>
+        </div>
+
+        <div class="column">
+            <h2>Comments</h2>
+            <table class="table">
+                <tr>
+                    <th>User</th>
+                    <th>Comment</th>
+                </tr>
+                
+                {% for comment in listing_comments %}
+
+                <tr>
+                    <td> {{ comment.user }}</td>
+                    <td> {{ comment.comment }} </td>
+                </tr>
+
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+
+{% endblock %}

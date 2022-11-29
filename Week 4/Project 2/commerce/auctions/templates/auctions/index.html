@@ -3,5 +3,60 @@
 {% block body %}
     <h2>Active Listings</h2>
 
-    TODO
+    <table class="table">
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Current Price</th>
+            <th>Owner</th>
+            <th>Image (Optional)</th>
+            <th>Category (Optional)</th>
+        </tr>
+
+        {% for listing in active_listings %}
+        <tr>
+            <td>
+                <a href="{% url 'listing' listing.id %}">{{ listing.title }}</a>
+            </td>
+            <td>{{ listing.description }}</td>
+            <td>{{ listing.price }}</td>
+            <td>{{ listing.owner }}</td>
+            <td>
+                <img src="{{ listing.image }}" height="60px">
+            </td>
+            <td>{{ listing.category }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Closed Listings</h2>
+
+    <table class="table">
+        <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Winning Price</th>
+            <th>Owner</th>
+            <th>Image (Optional)</th>
+            <th>Category (Optional)</th>
+        </tr>
+
+        {% for listing in closed_listings %}
+        <tr>
+            <td>
+                <a href="{% url 'listing' listing.id %}">{{ listing.title }}</a>
+            </td>
+            <td>{{ listing.description }}</td>
+            <td>{{ listing.price }}</td>
+            <td>{{ listing.owner }}</td>
+            <td>
+                <img src="{{ listing.image }}" height="60px">
+            </td>
+            <td>{{ listing.category }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+
+
 {% endblock %}
