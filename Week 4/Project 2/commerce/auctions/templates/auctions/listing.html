@@ -46,6 +46,18 @@
 
             {% if listing.active == True %}
 
+                <form action="{%url 'listing' id %}" method="POST">
+                    {% csrf_token %}
+                    <label for="description">
+                        {% if not watchlist_record %}
+                            Add to Watchlist: 
+                        {% else %}
+                            Remove from Watchlist:
+                        {% endif %}
+                    </label>
+                    <input type="submit" value="Toggle" name="watchlistToggle">
+                </form>
+
                 {% if listing.owner != user %} 
 
                     <form action="{% url 'listing' id %}" method="POST">

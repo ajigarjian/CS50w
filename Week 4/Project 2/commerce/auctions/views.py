@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from django.core.exceptions import ValidationError
+from django.contrib.auth.decorators import login_required
 
 from .models import User, Listing, Bid, Comment, Watchlist
 
@@ -15,6 +16,8 @@ CATEGORIES = [
     ('Electronics', 'Electronics'),
     ('Home', 'Home'),
 ]
+
+# Django Forms
 
 class NewListingForm(forms.Form):
     title = forms.CharField()
@@ -28,6 +31,11 @@ class NewBidForm(forms.Form):
 
 class NewCommentForm(forms.Form):
     comment = forms.CharField(label="Add Comment")
+
+class WatchlistForm(forms.Form):
+    toggle = forms.BooleanField(required=False, label="Toggle Watchlist")
+
+# Views
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -55,7 +63,7 @@ def login_view(request):
     else:
         return render(request, "auctions/login.html")
 
-
+@login_required
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
@@ -86,7 +94,7 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
 
-
+@login_required
 def create(request):
 
     #if user is accessing create view after submitting a form:
@@ -121,8 +129,6 @@ def create(request):
         "form": NewListingForm()
     })
 
-
-
 def listing(request, id):
 
     # get the listing object associated with the listing view we are on
@@ -145,7 +151,18 @@ def listing(request, id):
 
             listing.active = False
             listing.save()
-     
+        
+        elif 'watchlistToggle' in request.POST:
+
+            form = WatchlistForm(request.POST)
+
+            if not Watchlist.objects.filter(listing = listing, user = request.user):
+                watchlist_record = Watchlist(listing = listing, user = request.user)
+                watchlist_record.save()
+                        
+            elif Watchlist.objects.filter(listing = listing, user = request.user):
+                Watchlist.objects.filter(listing = listing, user = request.user).first().delete()
+
         elif 'bidSubmit' in request.POST:
 
             # retrieve form information for bid
@@ -174,6 +191,8 @@ def listing(request, id):
         "listing": listing,
         "form": NewBidForm(),
         "comment_form": NewCommentForm(),
+        "watchlist_form": WatchlistForm(),
+        "watchlist_record": Watchlist.objects.filter(listing = listing, user = request.user).first(),
         "listing_bids": Bid.objects.filter(listing = listing),
         "listing_comments": Comment.objects.filter(listing = listing),
         "user": request.user
@@ -192,3 +211,10 @@ def category(request, category=None):
         "listings": listings
     })
 
+@login_required
+def watchlist(request):
+    watchlist = Watchlist.objects.filter(user = request.user)
+
+    return render(request, "auctions/watchlist.html", {
+        "watchlist": watchlist
+    })
