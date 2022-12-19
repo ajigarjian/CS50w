@@ -1,3 +1,12 @@
 textarea {
     min-height: 400px;
 }
+
+.email_box {
+    outline-style: solid;
+    outline-color: #0275d8;
+    border-radius: 2px;
+    margin-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
