@@ -151,6 +151,8 @@ function load_mailbox(mailbox) {
               .then(response => response.json())
               .then(email => {
 
+                console.log(email.subject);
+
                   // collapse the other divs and show the email div
                   document.querySelector('#emails-view').style.display = 'none';
                   document.querySelector('#email-view').style.display = 'block';
@@ -189,8 +191,13 @@ function load_mailbox(mailbox) {
                     }
                   }
                   
-                  document.querySelector('#reply-button').addEventListener('click', () => compose_email(email.sender, `Re: ${email.subject}`, `On ${email.timestamp} ${email.sender} wrote: ${email.body}`));
-
+                  if (email.subject.slice(0, 2) == "Re") {
+                    document.querySelector('#reply-button').addEventListener('click', () => compose_email(email.sender, `${email.subject}`, `On ${email.timestamp} ${email.sender} wrote: ${email.body}`));
+                  }
+                  else {
+                    document.querySelector('#reply-button').addEventListener('click', () => compose_email(email.sender, `Re: ${email.subject}`, `On ${email.timestamp} ${email.sender} wrote: ${email.body}`));
+                  }
+                  
               });
             }
 
