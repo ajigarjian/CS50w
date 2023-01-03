@@ -2,11 +2,20 @@ textarea {
     min-height: 400px;
 }
 
+.row_box {
+    margin-bottom: 10px;
+}
+
 .email_box {
     outline-style: solid;
     outline-color: #0275d8;
     border-radius: 2px;
-    margin-bottom: 10px;
     padding-left: 10px;
     padding-right: 10px;
+    margin-right: 10px;
 }
+
+.read {
+    background-color: #DCDCDC;
+}
+

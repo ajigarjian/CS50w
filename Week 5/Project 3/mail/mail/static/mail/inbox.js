@@ -52,40 +52,16 @@ function compose_email(recipients, subject, body) {
 
     .then(response => response.json())
     .then(result => {
-        // Print result
-        console.log(result);
     });
-
-    // fetch('/emails/inbox')
-    // .then(response => response.json())
-    // .then(emails => {
-    //   for (i=0; i<emails.length; i++) {
-
-
-        
-    //     if (i==0) {
-
-    //       id = emails[i].id;
-
-    //       fetch(`/emails/${id}`, {
-    //         method: 'PUT',
-    //         body: JSON.stringify({
-    //             read: false
-    //         })
-    //       })
-    //     }
-        
-    //   }
-    // });
 
     // Clear out composition fields
     recipients_field.value = '';
     subject_field.value = '';
     body_field.value = '';
 
-    //load the mailbox after email successfully sent
+    //load the sent mailbox after email successfully sent
     setTimeout(function(){ 
-      load_mailbox('inbox'); 
+      load_mailbox('sent'); 
     }, 100);
 
     // Stop form from submitting
@@ -114,7 +90,149 @@ function load_mailbox(mailbox) {
       .then(response => response.json())
       .then(emails => {
 
-        console.log(emails)
+        console.log(emails);
+        
+          //for each email...
+          for (i = 0; i < emails.length; i++) {
+
+            // if the email is not archived...
+            if (emails[i].archived == false) {
+
+              //create a div with its own border and populate it's text as displays who its from, what the subject line is, and the timestamp
+              
+              //parent div acting as a flex container for each row
+              const row = document.createElement('row');
+              row.style.display ="flex"; //make the parent flex so the child divs are side by side
+              row.setAttribute('class', 'row_box'); //add padding, margin, etc to each row
+
+              //box containing email info, and archive button
+              const archive = document.createElement('button');
+              archive.setAttribute('class', 'btn btn-sm btn-outline-primary');
+              archive.innerHTML = 'Archive';
+
+              //box containing email info
+              const box = document.createElement('div');
+              box.setAttribute('id', emails[i].id); //set id
+              box.classList.add('email_box'); //set box style
+
+              //if the email has been read, add the gray background using the 'read' css class
+              if (emails[i].read === true) {
+                box.classList.add('read');
+              }
+
+              box.style.textAlign = 'center';
+
+              const sender = document.createElement('span');
+              const subject = document.createElement('span');
+              const timestamp = document.createElement('span');
+
+              sender.innerHTML = `From: ${emails[i].sender}`
+              subject.innerHTML = `Subject: ${emails[i].subject}`
+              timestamp.innerHTML = `${emails[i].timestamp}`
+
+              sender.style.float="left";
+              sender.style.fontWeight="bold";
+              subject.style.float="center";
+              timestamp.style.float="right";
+              
+              box.appendChild(sender);
+              box.appendChild(subject);
+              box.appendChild(timestamp);
+
+              row.appendChild(box);
+              row.appendChild(archive);
+              document.querySelector('#emails-view').appendChild(row);
+
+              box.onclick = () => {
+
+                fetch(`/emails/${box.id}`)
+                .then(response => response.json())
+                .then(email => {
+
+                  //mark email as read once it opened clicked on the inbox page
+                  fetch(`/emails/${box.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        read: true
+                    })
+                  });
+
+                  console.log(email);
+
+                    // collapse the other divs and show the email div
+                    document.querySelector('#emails-view').style.display = 'none';
+                    document.querySelector('#email-view').style.display = 'block';
+
+                    // manipulate the DOM to add the content of the fetched (clicked) email
+                    const email_sender = document.createElement('text');
+                    const email_recipients = document.createElement('text');
+                    const email_subject = document.createElement('text');
+                    const email_timestamp = document.createElement('text');
+                    const email_body = document.createElement('text');
+                    const reply_button = document.createElement('button');
+
+                    reply_button.setAttribute('class', 'btn btn-sm btn-outline-primary');
+                    reply_button.setAttribute('id', 'reply-button');
+
+                    email_sender.innerHTML = `From: ${email.sender}`;
+                    email_recipients.innerHTML = `To: ${email.recipients}`;
+                    email_subject.innerHTML = `Subject: ${email.subject}`;
+                    email_timestamp.innerHTML = `Timestamp: ${email.timestamp}`;
+                    email_body.innerHTML = `${email.body}`
+                    reply_button.innerHTML = 'Reply';
+
+                    content_rows = [email_sender, email_recipients, email_subject, email_timestamp, reply_button, email_body];
+
+                    for (i = 0; i < content_rows.length; i++) {
+                      document.querySelector('#email-view').appendChild(content_rows[i]);
+
+                      if (content_rows[i] === reply_button) {
+                        const hr = document.createElement("hr");
+                        document.querySelector('#email-view').appendChild(hr);
+                      }
+
+                      else {
+                        const br = document.createElement("br");
+                        document.querySelector('#email-view').appendChild(br);
+                      }
+                    }
+                    
+                    if (email.subject.slice(0, 2) == "Re") {
+                      document.querySelector('#reply-button').addEventListener('click', () => compose_email(email.sender, `${email.subject}`, `On ${email.timestamp} ${email.sender} wrote: ${email.body}`));
+                    }
+                    else {
+                      document.querySelector('#reply-button').addEventListener('click', () => compose_email(email.sender, `Re: ${email.subject}`, `On ${email.timestamp} ${email.sender} wrote: ${email.body}`));
+                    }
+                    
+                });
+              }
+
+              archive.onclick = () => {
+                //mark email as archived once it's archived button is clicked
+                fetch(`/emails/${box.id}`, {
+                  method: 'PUT',
+                  body: JSON.stringify({
+                      archived: true
+                  })
+                });
+
+                setTimeout(function() {
+                  load_mailbox('inbox');
+                }, 100);
+
+              }
+            }
+          }
+      });
+
+    }
+
+     //once you click the sent button, and load_mailbox('sent is called), show the Sent mailbox content
+     else if (mailbox == 'sent') {
+
+      fetch('/emails/sent')
+      .then(response => response.json())
+      .then(emails => {
         
           //for each email...
           for (i = 0; i < emails.length; i++) {
@@ -126,20 +244,20 @@ function load_mailbox(mailbox) {
 
             box.style.textAlign = 'center';
 
-            const sender = document.createElement('span');
+            const recipients = document.createElement('span');
             const subject = document.createElement('span');
             const timestamp = document.createElement('span');
 
-            sender.innerHTML = `${emails[i].sender}`
+            recipients.innerHTML = `To: ${emails[i].recipients}`
             subject.innerHTML = `Subject: ${emails[i].subject}`
             timestamp.innerHTML = `${emails[i].timestamp}`
 
-            sender.style.float="left";
-            sender.style.fontWeight="bold";
+            recipients.style.float="left";
+            recipients.style.fontWeight="bold";
             subject.style.float="center";
             timestamp.style.float="right";
             
-            box.appendChild(sender);
+            box.appendChild(recipients);
             box.appendChild(subject);
             box.appendChild(timestamp);
 
@@ -150,8 +268,6 @@ function load_mailbox(mailbox) {
               fetch(`/emails/${box.id}`)
               .then(response => response.json())
               .then(email => {
-
-                console.log(email.subject);
 
                   // collapse the other divs and show the email div
                   document.querySelector('#emails-view').style.display = 'none';
@@ -201,6 +317,150 @@ function load_mailbox(mailbox) {
               });
             }
 
+          }
+      });
+
+     }
+
+     // //If load_mailbox(inbox) is invoked (e.g. the mailbox input is equal to the inbox), show the mailbox contents via API call
+    if (mailbox == 'archive') {
+
+      fetch('/emails/archive')
+      .then(response => response.json())
+      .then(emails => {
+
+        console.log(emails);
+        
+          //for each email...
+          for (i = 0; i < emails.length; i++) {
+
+            // if the email is not archived...
+            if (emails[i].archived == true) {
+
+              //create a div with its own border and populate it's text as displays who its from, what the subject line is, and the timestamp
+              
+              //parent div acting as a flex container for each row
+              const row = document.createElement('row');
+              row.style.display ="flex"; //make the parent flex so the child divs are side by side
+              row.setAttribute('class', 'row_box'); //add padding, margin, etc to each row
+
+              //box containing email info, and archive button
+              const archive = document.createElement('button');
+              archive.setAttribute('class', 'btn btn-sm btn-outline-primary');
+              archive.innerHTML = 'Unarchive';
+
+              //box containing email info
+              const box = document.createElement('div');
+              box.setAttribute('id', emails[i].id); //set id
+              box.classList.add('email_box'); //set box style
+
+              //if the email has been read, add the gray background using the 'read' css class
+              if (emails[i].read === true) {
+                box.classList.add('read');
+              }
+
+              box.style.textAlign = 'center';
+
+              const sender = document.createElement('span');
+              const subject = document.createElement('span');
+              const timestamp = document.createElement('span');
+
+              sender.innerHTML = `From: ${emails[i].sender}`
+              subject.innerHTML = `Subject: ${emails[i].subject}`
+              timestamp.innerHTML = `${emails[i].timestamp}`
+
+              sender.style.float="left";
+              sender.style.fontWeight="bold";
+              subject.style.float="center";
+              timestamp.style.float="right";
+              
+              box.appendChild(sender);
+              box.appendChild(subject);
+              box.appendChild(timestamp);
+
+              row.appendChild(box);
+              row.appendChild(archive);
+              document.querySelector('#emails-view').appendChild(row);
+
+              box.onclick = () => {
+
+                fetch(`/emails/${box.id}`)
+                .then(response => response.json())
+                .then(email => {
+
+                  //mark email as read once it opened clicked on the inbox page
+                  fetch(`/emails/${box.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        read: true
+                    })
+                  });
+
+                  console.log(email);
+
+                    // collapse the other divs and show the email div
+                    document.querySelector('#emails-view').style.display = 'none';
+                    document.querySelector('#email-view').style.display = 'block';
+
+                    // manipulate the DOM to add the content of the fetched (clicked) email
+                    const email_sender = document.createElement('text');
+                    const email_recipients = document.createElement('text');
+                    const email_subject = document.createElement('text');
+                    const email_timestamp = document.createElement('text');
+                    const email_body = document.createElement('text');
+                    const reply_button = document.createElement('button');
+
+                    reply_button.setAttribute('class', 'btn btn-sm btn-outline-primary');
+                    reply_button.setAttribute('id', 'reply-button');
+
+                    email_sender.innerHTML = `From: ${email.sender}`;
+                    email_recipients.innerHTML = `To: ${email.recipients}`;
+                    email_subject.innerHTML = `Subject: ${email.subject}`;
+                    email_timestamp.innerHTML = `Timestamp: ${email.timestamp}`;
+                    email_body.innerHTML = `${email.body}`
+                    reply_button.innerHTML = 'Reply';
+
+                    content_rows = [email_sender, email_recipients, email_subject, email_timestamp, reply_button, email_body];
+
+                    for (i = 0; i < content_rows.length; i++) {
+                      document.querySelector('#email-view').appendChild(content_rows[i]);
+
+                      if (content_rows[i] === reply_button) {
+                        const hr = document.createElement("hr");
+                        document.querySelector('#email-view').appendChild(hr);
+                      }
+
+                      else {
+                        const br = document.createElement("br");
+                        document.querySelector('#email-view').appendChild(br);
+                      }
+                    }
+                    
+                    if (email.subject.slice(0, 2) == "Re") {
+                      document.querySelector('#reply-button').addEventListener('click', () => compose_email(email.sender, `${email.subject}`, `On ${email.timestamp} ${email.sender} wrote: ${email.body}`));
+                    }
+                    else {
+                      document.querySelector('#reply-button').addEventListener('click', () => compose_email(email.sender, `Re: ${email.subject}`, `On ${email.timestamp} ${email.sender} wrote: ${email.body}`));
+                    }
+                    
+                });
+              }
+
+              archive.onclick = () => {
+                //mark email as archived once it's archived button is clicked
+                fetch(`/emails/${box.id}`, {
+                  method: 'PUT',
+                  body: JSON.stringify({
+                      archived: false
+                  })
+                });
+
+                setTimeout(function() {
+                  load_mailbox('archive');
+                }, 100);
+        
+              }
+            }
           }
       });
 
