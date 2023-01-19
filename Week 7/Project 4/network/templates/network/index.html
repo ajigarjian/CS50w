@@ -1,19 +1,34 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block body %}
-   <div id="body_container">
-        <div id="body_header">
-            <h1>All Posts</h1>
-        </div>
-        <div id="new_post_container">
-            <form>
-                <div id="post_form" class="form-group">
-                    <label for="placeholder" class="form-label"><h4>New Post</h4></label>
-                    <textarea class="form-control"></textarea>
-                    <br>
-                    <input type="submit" class="btn btn-primary">
-                </div>
-            </form>
-        </div>
-   </div> 
+
+    {% if user.is_authenticated %}
+        <div id="body_container">
+
+            <div id="body_header">
+                <h1>All Posts</h1>
+            </div>
+
+            <div id="new_post_container">
+                <form id="new_post_form">
+                    <div id="post_form" class="form-group">
+                        <label for="placeholder" class="form-label"><h4>New Post</h4></label>
+                        <textarea id="post-content" class="form-control" ></textarea>
+                        <br>
+                        <input type="submit" class="btn btn-primary">
+                     </div>
+                </form>
+            </div>
+
+            <div id="posts_container">
+            </div>
+        </div> 
+    {% endif %}
+
+
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/javascript.js' %}"></script>
 {% endblock %}

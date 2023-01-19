@@ -1,16 +1,58 @@
+import json
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.http import JsonResponse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
+from django.core import serializers
 
-from .models import User, Post, Comment
+from .models import User, Post
 
 
 def index(request):
     return render(request, "network/index.html")
 
+@csrf_exempt
+@login_required
+def publish(request):
+    # Publishing a new post must be via POST, otherwise send error back to js file
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    #Get post content from POST
+    data = json.loads(request.body)
+    content = data.get("content")
 
+    #Get post author
+    author = request.user
+
+    #Create post
+    post = Post(
+        content=content,
+        author=author
+    )
+
+    #Save post to database
+    post.save()
+
+    # Once saved to database, return success message
+    return JsonResponse({"message": "Post published successfully."}, status=201)
+
+@csrf_exempt
+@login_required
+def posts(request):
+    if request.method == "GET":
+        posts = serializers.serialize("json", Post.objects.all())
+        return JsonResponse(posts, safe=False)
+    
+    else:
+        return JsonResponse({"error": "GET request required."}, status=400)
+
+
+    
 def login_view(request):
     if request.method == "POST":
 
