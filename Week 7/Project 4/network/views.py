@@ -7,10 +7,9 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.core import serializers
 
 from .models import User, Post
-
+ 
 
 def index(request):
     return render(request, "network/index.html")
@@ -26,13 +25,15 @@ def publish(request):
     data = json.loads(request.body)
     content = data.get("content")
 
-    #Get post author
-    author = request.user
+    # Return error if the post content is empty (user didn't enter any text)
+    if content == "":
+        return JsonResponse({"error": "Post must not be empty."}, status=400)
+
 
     #Create post
     post = Post(
         content=content,
-        author=author
+        author=request.user
     )
 
     #Save post to database
@@ -45,8 +46,7 @@ def publish(request):
 @login_required
 def posts(request):
     if request.method == "GET":
-        posts = serializers.serialize("json", Post.objects.all())
-        return JsonResponse(posts, safe=False)
+        return JsonResponse([post.serialize() for post in reversed(Post.objects.all())], safe=False)
     
     else:
         return JsonResponse({"error": "GET request required."}, status=400)

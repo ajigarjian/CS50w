@@ -13,8 +13,17 @@ class Post(models.Model):
     author = models.ForeignKey("User", on_delete=models.CASCADE)
     # comments = models.ForeignKey("Comment", on_delete=models.CASCADE)
 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "content": self.content,
+            "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
+            "author": self.author.username
+        }
+
 # class Comment(models.Model):
 #     text = models.TextField(max_length = 255, null=True)
 #     timestamp = models.DateTimeField(auto_now_add=True)
 #     author = models.ForeignKey("User", on_delete=models.CASCADE)
 #     parent_post = models.ForeignKey("Post", on_delete=models.CASCADE)
+
