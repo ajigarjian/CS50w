@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import JsonResponse
@@ -44,15 +45,49 @@ def publish(request):
 
 @csrf_exempt
 @login_required
+def update(request, post_id):
+    # Publishing a new post must be via POST, otherwise send error back to js file
+    if request.method != "PUT":
+        return JsonResponse({"error": "PUT request required."}, status=400)
+
+    # Query for requested post
+    try:
+        post = Post.objects.get(author=request.user, pk=post_id)
+    except Post.DoesNotExist:
+        return JsonResponse({"error": "Post not found."}, status=404)
+    
+    #Get post content from PUT
+    data = json.loads(request.body)
+    content = data.get("content")
+
+    # Return error if the post content is empty (user deleted old text and didn't enter any new test)
+    if content == "":
+        return JsonResponse({"error": "New text must not be empty."}, status=400)
+
+    #Update post with new content and current time of update
+    post.content = content
+    post.timestamp = datetime.now()
+    
+    # Also update post to reflect that it has been edited if it hasn't been so already
+    if post.edited != True:
+         post.edited = True
+
+    post.save()
+    
+    # Once saved to database, return success message
+    return JsonResponse({"message": "Post updated successfully."}, status=201)
+
+@csrf_exempt
+@login_required
 def posts(request):
     if request.method == "GET":
-        return JsonResponse([post.serialize() for post in reversed(Post.objects.all())], safe=False)
+        posts = [post.serialize() for post in Post.objects.order_by('-timestamp')]
+        user = request.user.username
+        return JsonResponse({"posts_key":posts, "user_key": user}, safe=False)
     
     else:
         return JsonResponse({"error": "GET request required."}, status=400)
 
-
-    
 def login_view(request):
     if request.method == "POST":
 

@@ -11,6 +11,7 @@ class Post(models.Model):
     content = models.TextField(max_length = 255, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey("User", on_delete=models.CASCADE)
+    edited = models.BooleanField(default=False)
     # comments = models.ForeignKey("Comment", on_delete=models.CASCADE)
 
     def serialize(self):
@@ -18,7 +19,8 @@ class Post(models.Model):
             "id": self.id,
             "content": self.content,
             "timestamp": self.timestamp.strftime("%b %d %Y, %I:%M %p"),
-            "author": self.author.username
+            "author": self.author.username,
+            "edited": self.edited
         }
 
 # class Comment(models.Model):

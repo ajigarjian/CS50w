@@ -29,3 +29,11 @@
 .timestamp_field {
     color: gray;
 }
+
+.edit_field {
+    color: blue;
+}
+.edit_field:hover {
+    color: darkblue;
+    cursor: pointer;
+}
