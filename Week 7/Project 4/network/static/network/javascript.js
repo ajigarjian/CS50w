@@ -1,7 +1,35 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Call helper function upon loading page to load in posts
-    display_posts();
+    // Call helper function upon loading page to load in first page of posts
+    display_posts(1);
+
+    // Create eventlisteners on pagination buttons. When one is clicked:
+    document.querySelectorAll(".page-link").forEach(function(item) {
+
+        setTimeout(function() { 
+            top_post_id = parseInt(document.querySelector("#posts_container").firstElementChild.id);
+
+            fetch(`/page/${top_post_id}`)
+            .then(response => response.json())
+            .then(page_number => {
+
+                if (item.innerHTML == 'Previous') {
+                    item.addEventListener('click', display_posts(Math.max((page_number)-1, 1)));
+                }
+
+                else if (item.innerHTML == 'Next') {
+                    item.addEventListener('click', display_posts(Math.min((page_number)+1, document.querySelectorAll(".page-link").length)));
+                }
+
+                else {
+                    item.addEventListener('click', display_posts(item.innerHTML));
+                }
+                
+            });
+
+        }, 100);
+    
+    });
 
     // Events that occur if a new post is submitted
     document.querySelector('#new_post_form').onsubmit = () => {
@@ -27,9 +55,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Reset the form textarea to be blank
         content_field.value = '';
 
-        // Update post html content with new post
+        // Display html of first page of posts again, this time with new post
         setTimeout(function() { 
-            display_posts();
+            display_posts(1);
           }, 10);
 
         // Stop form from submitting
@@ -82,25 +110,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log(result);
             });
             
-            // Once the post is async updated via API call to backend, call display posts so the html is reset w/ the new content
+            // Once the post is async updated via API call to backend, call display posts to show first page so the html is reset w/ the new content
             setTimeout(function() { 
-                display_posts();
+                display_posts(1);
             }, 100);
         };
 
         return false;
     }
 
-    // Function that displays all posts by manipulating the DOM
-    function display_posts() {
+    // Function that displays given page of posts by manipulating the DOM, input is the page number (pages are in groups of 10)
+    function display_posts(page) {
 
         // Reset posts so there's nothing in there before adding all of them back in plus the new one
         document.querySelector('#posts_container').innerHTML = '';
 
-        fetch(`/posts`)
+        // Reset pagination container so there's nothing in there before adding all of the buttons back in
+        document.querySelector('#numbered_buttons').innerHTML = '';
+
+        fetch(`/posts/${page}`)
         .then(response => response.json())
         .then(data => {
-            data["posts_key"].forEach(post => create_post_html(post, data["user_key"])); 
+            data["posts_key"].forEach(post => create_post_html(post, data["user_key"]));
+            refresh_footer(data["page_range"]);
         })
         return;
     }
@@ -161,6 +193,24 @@ document.addEventListener('DOMContentLoaded', function() {
         like_container.appendChild(like_content);
 
         return;
+    }
+
+    function refresh_footer(page_numbers) {
+
+        page_numbers.forEach(function(page_number) {
+
+            const page_list_item = document.createElement('li');
+            page_list_item.setAttribute('class', "page-item")
+            page_list_item.setAttribute('id', `page-item-${page_number}`)
+    
+            document.querySelector("#numbered_buttons").append(page_list_item);
+    
+            const page_button = document.createElement('button');
+            page_button.setAttribute('class', "page-link");
+            page_button.innerHTML = page_number;
+
+            document.querySelector(`#page-item-${page_number}`).appendChild(page_button);
+        });
     }
 })
 

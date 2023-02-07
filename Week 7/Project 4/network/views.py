@@ -8,6 +8,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 from .models import User, Post
  
@@ -79,11 +80,14 @@ def update(request, post_id):
 
 @csrf_exempt
 @login_required
-def posts(request):
+def posts(request, page):
     if request.method == "GET":
-        posts = [post.serialize() for post in Post.objects.order_by('-timestamp')]
+        all_posts = Paginator(Post.objects.order_by('-timestamp'), 10)
+        current_posts = [post.serialize() for post in all_posts.page(page)]
+
         user = request.user.username
-        return JsonResponse({"posts_key":posts, "user_key": user}, safe=False)
+        
+        return JsonResponse({"posts_key": current_posts, "user_key": user, "page_range" : list(Paginator(Post.objects.order_by('-timestamp'), 10).page_range)}, safe=False)
     
     else:
         return JsonResponse({"error": "GET request required."}, status=400)
@@ -138,3 +142,11 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+@csrf_exempt
+@login_required
+def page(request, post_id):
+    page_number = (list(Post.objects.order_by('-timestamp').values_list('id', flat=True)).index(post_id)+10)//10
+
+    return JsonResponse(page_number, safe=False)
+

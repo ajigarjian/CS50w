@@ -11,6 +11,16 @@
     border-color: #D3D3D3;
 }
 
+#pagination_container {
+     display: flex;
+     justify-content: center;
+     margin-top: 30px;
+}
+
+#numbered_buttons {
+    display: flex;
+}
+
 #post_form {
     padding-left: 10px;
     padding-right: 10px;
