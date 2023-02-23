@@ -1,5 +1,5 @@
 {% extends "network/layout.html" %}
-{% load static %}
+<!-- {% load static %} -->
 
 {% block body %}
 
@@ -26,14 +26,8 @@
 
             <div id="pagination_container">
                 <!-- Add in pagination buttons using bootstrap -->
-
-
                 <nav aria-label="Posts Navigation">
-                    <ul class="pagination">
-                        <li id="previous_button"class="page-item"><button class="page-link">Previous</button></li>  
-                        <div id="numbered_buttons">
-                        </div>
-                        <li id="next_button"class="page-item"><button class="page-link">Next</button></li>
+                    <ul id="pagination_list" class="pagination"> 
                     </ul>
                   </nav>
             </div>

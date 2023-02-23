@@ -3,34 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call helper function upon loading page to load in first page of posts
     display_posts(1);
 
-    // Create eventlisteners on pagination buttons. When one is clicked:
-    document.querySelectorAll(".page-link").forEach(function(item) {
-
-        setTimeout(function() { 
-            top_post_id = parseInt(document.querySelector("#posts_container").firstElementChild.id);
-
-            fetch(`/page/${top_post_id}`)
-            .then(response => response.json())
-            .then(page_number => {
-
-                if (item.innerHTML == 'Previous') {
-                    item.addEventListener('click', display_posts(Math.max((page_number)-1, 1)));
-                }
-
-                else if (item.innerHTML == 'Next') {
-                    item.addEventListener('click', display_posts(Math.min((page_number)+1, document.querySelectorAll(".page-link").length)));
-                }
-
-                else {
-                    item.addEventListener('click', display_posts(item.innerHTML));
-                }
-                
-            });
-
-        }, 100);
-    
-    });
-
     // Events that occur if a new post is submitted
     document.querySelector('#new_post_form').onsubmit = () => {
 
@@ -124,15 +96,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Reset posts so there's nothing in there before adding all of them back in plus the new one
         document.querySelector('#posts_container').innerHTML = '';
-
-        // Reset pagination container so there's nothing in there before adding all of the buttons back in
-        document.querySelector('#numbered_buttons').innerHTML = '';
+        document.querySelector('#pagination_container').innerHTML = '';
 
         fetch(`/posts/${page}`)
         .then(response => response.json())
         .then(data => {
             data["posts_key"].forEach(post => create_post_html(post, data["user_key"]));
-            refresh_footer(data["page_range"]);
+            display_pagination(data["previous_key"], data["next_key"]);
         })
         return;
     }
@@ -145,7 +115,6 @@ document.addEventListener('DOMContentLoaded', function() {
         post_container.setAttribute('id', `${post.id}`);
         document.querySelector('#posts_container').appendChild(post_container);
 
-    
         // 2. Create divs - one for content, one for edit link, one for username, one for time, one for likes, & put those divs within the container div
         const content_container = document.createElement('div');
         const edit_container = document.createElement('div');
@@ -195,23 +164,44 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    function refresh_footer(page_numbers) {
+    function display_pagination(previous_check, next_check) {
 
-        page_numbers.forEach(function(page_number) {
-
+        if (previous_check == true) {
             const page_list_item = document.createElement('li');
-            page_list_item.setAttribute('class', "page-item")
-            page_list_item.setAttribute('id', `page-item-${page_number}`)
+            page_list_item.setAttribute('class', "page-item");
+            page_list_item.setAttribute('id', `previous`);
+
+            console.log(document.querySelector("#pagination_container"));
     
-            document.querySelector("#numbered_buttons").append(page_list_item);
+            document.querySelector("#pagination_list").appendChild(page_list_item);
     
             const page_button = document.createElement('button');
             page_button.setAttribute('class', "page-link");
-            page_button.innerHTML = page_number;
+            page_button.innerHTML = 'Previous'
 
-            document.querySelector(`#page-item-${page_number}`).appendChild(page_button);
-        });
-    }
+            document.querySelector(`#previous`).appendChild(page_button);
+        
+        }
+        
+        if (next_check == true) {
+            const page_list_item = document.createElement('li');
+            page_list_item.setAttribute('class', "page-item");
+            page_list_item.setAttribute('id', `next`);
+
+            console.log(document.querySelector("#pagination_container"));
+            console.log(document.querySelector(".pagination"));
+    
+            document.querySelector("#pagination_list").appendChild(page_list_item);
+    
+            const page_button = document.createElement('button');
+            page_button.setAttribute('class', "page-link");
+            page_button.innerHTML = 'Next'
+
+            document.querySelector(`#next`).appendChild(page_button);
+        }
+    
+        return false;
+    };
 })
 
 
